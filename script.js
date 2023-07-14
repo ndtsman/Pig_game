@@ -3,37 +3,99 @@
 //selecting elements only
 const score0El = document.querySelector('#score--0');
 const score1El = document.getElementById('score--1');
+// name to current--0 to allow future change
 const current0 = document.getElementById('current--0');
-let sum0 = 0; // bring this outside the function to make it sum up
+// name to current--1 to allow future change
 const current1 = document.getElementById('current--1');
-let sum1 = 0; // bring this outside the function to make it sum up
+
 const diceEl = document.querySelector('.dice');
-diceEl.classList.add('hidden');
+const player0El = document.querySelector('.player--0');
+const player1El = document.querySelector('.player--1');
+
+let activePlayer, currentScore, playing, scores;
+
+const init = function () {
+  score0El.textContent = 0;
+  score1El.textContent = 0;
+  //switch player
+  activePlayer = 0;
+  // share current score
+  currentScore = 0;
+  playing = true;
+  //easier switch
+  scores = [0, 0];
+  current0.textContent = 0;
+  current1.textContent = 0;
+  diceEl.classList.add('hidden');
+  player0El.classList.remove('player--winner');
+  player1El.classList.remove('player--winner');
+  player0El.classList.add('player--active');
+  player1El.classList.remove('player--active');
+};
+init();
 
 const btnRoll = document.querySelector('.btn--roll');
 const btnNew = document.querySelector('.btn--new');
 const btnHold = document.querySelector('.btn--hold');
 
-//stating condition
-score0El.textContent = 0;
-score1El.textContent = 0;
+//to avoid repetition
+const playerSwitch = function () {
+  document.getElementById(`current--${activePlayer}`).textContent = 0;
+  currentScore = 0;
+  // `player${activePlayer}El`.classList.remove('player--active');
+  // switch to next player
+  activePlayer = activePlayer === 0 ? 1 : 0;
+  player0El.classList.toggle('player--active');
+  player1El.classList.toggle('player--active');
+};
 
 btnRoll.addEventListener('click', function () {
-  // Move down the variable here to be called when ever the btn is clicked.
-  let dice = Math.trunc(Math.random() * 6) + 1;
+  if (playing) {
+    // Move down the variable here to be called when ever the btn is clicked.
+    let dice = Math.trunc(Math.random() * 6) + 1;
 
-  //display dice
-  diceEl.classList.remove('hidden');
-  diceEl.src = `dice-${dice}.png`;
+    //display dice
+    diceEl.classList.remove('hidden');
+    diceEl.src = `dice-${dice}.png`;
 
-  //add score to current
-  if (dice !== 1) {
-    // add dice to current score
-    sum0 += Number(dice);
-    current0.textContent = sum0;
-  } else {
-    // switch to next player
-    sum0 = 0;
-    current0.textContent = 0;
+    //add score to current
+    if (dice !== 1) {
+      // add dice to current score
+      currentScore += Number(dice);
+
+      document.getElementById(`current--${activePlayer}`).textContent =
+        currentScore;
+    } else {
+      playerSwitch();
+    }
   }
 });
+
+btnHold.addEventListener('click', function () {
+  if (playing) {
+    // scores[`${activePlayer}`] += currentScore;
+    scores[activePlayer] += currentScore;
+
+    // activePlayer === 0
+    //   ? (score0El.textContent = scores[`${activePlayer}`])
+    //   : (score1El.textContent = scores[`${activePlayer}`]);
+
+    document.getElementById(`score--${activePlayer}`).textContent =
+      scores[activePlayer];
+
+    if (scores[activePlayer] >= 20) {
+      playing = false;
+      diceEl.classList.add('hidden');
+      document
+        .querySelector(`.player--${activePlayer}`)
+        .classList.add('player--winner');
+      document
+        .querySelector(`.player--${activePlayer}`)
+        .classList.remove('player--active');
+    } else {
+      playerSwitch();
+    }
+  }
+});
+
+btnNew.addEventListener('click', init);
